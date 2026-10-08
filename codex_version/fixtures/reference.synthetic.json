@@ -1,0 +1,13 @@
+{
+  "root": {
+    "id": "root", "label": "", "title": "", "text": "", "depth": 0,
+    "children": [{
+      "id": "fixture-scope", "label": "1", "title": "Scope", "text": "\n\nOwn parent text.\n\n", "depth": 1,
+      "children": [{
+        "id": "fixture-detail", "label": "1.1", "title": "Detail",
+        "text": "\n\nChild body.\n\nPossible headingContinuation.\n\nAnother possible heading\n\nMore body.",
+        "depth": 2, "children": []
+      }]
+    }]
+  }
+}

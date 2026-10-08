@@ -1,0 +1,17 @@
+{
+  "sample_id": "M-24-08-Strengthening-Digital-Accessibility-and-the-Management-of-Section-508-of-the-Rehabilitation-Act",
+  "source_path": "test_docs/M-24-08-Strengthening-Digital-Accessibility-and-the-Management-of-Section-508-of-the-Rehabilitation-Act.pdf",
+  "source_sha256": "23dab5505b0b957354ff9d1201dc8a6bbfaba67f52d26eee21fe9a91b2222f29",
+  "selected_pages": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "annotation_status": "pending_external_generation",
+  "model": null,
+  "generation_method": "external_image_and_text_packet; no GPT call executed",
+  "root_convention": "Artificial root for original pages 1\u20136 only"
+}

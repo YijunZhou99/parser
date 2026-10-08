@@ -1,0 +1,106 @@
+[
+  {
+    "sample": "DKT-Employee-Handbook-12.23",
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "candidates": 17,
+    "accepted_sections": 2,
+    "ambiguous_candidates": 13,
+    "regions": 6,
+    "assessments": [
+      "ACCEPT",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL"
+    ],
+    "source_accounting_errors": [],
+    "annotation_status": "pending_external_generation",
+    "verified_accuracy": null
+  },
+  {
+    "sample": "Employee-Handbook",
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "candidates": 28,
+    "accepted_sections": 12,
+    "ambiguous_candidates": 4,
+    "regions": 2,
+    "assessments": [
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL"
+    ],
+    "source_accounting_errors": [],
+    "annotation_status": "pending_external_generation",
+    "verified_accuracy": null
+  },
+  {
+    "sample": "Employee-Handbook-for-Nonprofits-and-Small-Businesses",
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "candidates": 25,
+    "accepted_sections": 5,
+    "ambiguous_candidates": 14,
+    "regions": 4,
+    "assessments": [
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL"
+    ],
+    "source_accounting_errors": [],
+    "annotation_status": "pending_external_generation",
+    "verified_accuracy": null
+  },
+  {
+    "sample": "M-24-08-Strengthening-Digital-Accessibility-and-the-Management-of-Section-508-of-the-Rehabilitation-Act",
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "candidates": 26,
+    "accepted_sections": 6,
+    "ambiguous_candidates": 7,
+    "regions": 1,
+    "assessments": [
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL",
+      "NEEDS_VISUAL"
+    ],
+    "source_accounting_errors": [],
+    "annotation_status": "pending_external_generation",
+    "verified_accuracy": null
+  }
+]

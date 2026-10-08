@@ -1,0 +1,9 @@
+Create an AI draft outline for ONLY original pages 1–6 (or fewer if the PDF is shorter).
+Inspect original page images alongside extracted text; extraction is not ground truth.
+Return exactly {"root": {"id":"root","label":"","title":"...","text":"...","depth":0,"children":[]}}.
+Each child has exactly id,label,title,text,depth,children. IDs unique; depths derived from parentage.
+Preserve original labels, hierarchy, source order and own text. Do not summarize, invent missing content,
+or duplicate descendant text into parents. Keep tables faithful. Exclude running headers/footers and TOC
+from heading targets, but record exclusions and uncertainty in a separate notes file.
+Root represents this six-page slice, not content beyond it. Unheaded continuation belongs to its section.
+Return uncertainties separately. This is ai_unreviewed, never reviewed golden.

@@ -1,0 +1,6 @@
+{
+  "name": "Document Outline Annotator",
+  "description": "Google Docs-style document outline annotator with hierarchical drag-and-drop tree editing, golden data JSON export, and local storage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

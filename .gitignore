@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+.pnpm-store/
+dist/
+codex_version/runs/
+codex_version/benchmarks/*/pages/
+codex_version/benchmarks/*/source-text.json
+codex_version/benchmarks/*/silver.json
+codex_version/benchmarks/*/golden.json
+test_docs/
+.env
