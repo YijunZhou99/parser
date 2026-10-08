@@ -12,7 +12,7 @@ from .evidence import build_evidence
 from .resolver import decide, resolve_regions
 from .regions import regions_for, DEFAULT_INPUT_CHARACTERS
 from .hierarchy import assemble_hierarchy
-from .body import attach_body
+from .body import attach_body, body_index
 from .validation import validate_run
 
 def run_pages(pages: list[PageExtraction], document_hash='synthetic', visual_replays=None, structure_replays=None, debug_overrides=None, region_input_characters=DEFAULT_INPUT_CHARACTERS) -> RunResult:
@@ -33,6 +33,7 @@ def run_pages(pages: list[PageExtraction], document_hash='synthetic', visual_rep
     responses = stage('structure_provider',resolve_regions,regions, candidates, decisions, document_hash, revision, structure_replays)
     tree, created, hierarchy_errors, missing = stage('hierarchy',assemble_hierarchy,candidates, decisions)
     body = stage('body',attach_body,pages, candidates, decisions, revision, created)
+    ownership_index=stage('body_index',body_index,tree,body)
     validation = stage('validation',validate_run,tree, pages, body, decisions, hierarchy_errors, missing, revision)
     validation['structural_complete']=validation['complete']
     validation['unresolved_extraction']=[{'page':a['page'],'reasons':a['reasons'],
@@ -45,7 +46,7 @@ def run_pages(pages: list[PageExtraction], document_hash='synthetic', visual_rep
             'pages': pages, 'assessments': assessments, 'repairs': repairs, 'debug_overrides':override_records, 'candidates': candidates,
             'evidence': evidence, 'regions': regions, 'decisions': decisions, 'structure_provider': responses,
             'section_index': [d for d in decisions if d['status']=='RESOLVED' and d['role']=='section' and d['candidate_id'] in created],
-            'tree': tree, 'body': body, 'validation': validation,
+            'tree': tree, 'body': body, 'body_index':ownership_index, 'validation': validation,
             'timings':timings,
             'limitations': ['Provisional hierarchy/body', 'Incomplete dependency discovery', 'No live inference providers',
                             'No reviewed accuracy claims', 'No confirmed noise removal',

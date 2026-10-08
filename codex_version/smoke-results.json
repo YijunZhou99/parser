@@ -62,9 +62,9 @@
       6
     ],
     "candidates": 25,
-    "accepted_sections": 5,
-    "ambiguous_candidates": 14,
-    "regions": 4,
+    "accepted_sections": 6,
+    "ambiguous_candidates": 7,
+    "regions": 2,
     "assessments": [
       "NEEDS_VISUAL",
       "NEEDS_VISUAL",

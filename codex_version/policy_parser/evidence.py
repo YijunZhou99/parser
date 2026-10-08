@@ -40,10 +40,28 @@ def build_evidence(candidates: list[Candidate]) -> list[Evidence]:
             support.append('REPEATED_HEADING_STYLE_WITH_PROSE')
         if 'body_markup' in c['signals'] or 'bare_number' in c['signals']:
             support = ['EXPLICIT_BODY_SYNTAX']; chosen = None
+        elif 'repeated_page_margin' in c['signals']:
+            support = ['REPEATED_PAGE_MARGIN']; chosen = None
         observations.append({'candidate_id': c['id'], 'signals': list(c['signals']),
                              'numeric_level': numeric_level, 'markdown_level': level,
                              'possible_parents': [],
                              'support': support, 'conflicts': conflicts,
                              'label_interpretations':options[c['id']], 'selected_label':chosen,
                              'sequence_peers':corroboration[(c['id'],chosen['series'])] if chosen else []})
+    # A single first alphabetic subsection needs an established Roman context
+    # plus an explicit heading followed by prose, rather than a fabricated peer.
+    roman_context = None
+    for c, observation in zip(candidates, observations):
+        selected = observation['selected_label']
+        if selected and selected['family']=='roman' and observation['support'] and not observation['conflicts']:
+            roman_context = c['id']
+        elif (not observation['support'] and not observation['conflicts'] and roman_context
+              and c['markdown_level'] and 'following_prose' in c['signals']
+              and 'body_markup' not in c['signals'] and len(options[c['id']])==1
+              and options[c['id']][0]['family']=='alpha' and options[c['id']][0]['value']==1):
+            observation['selected_label'] = options[c['id']][0]
+            observation['support'] = ['FIRST_ALPHA_HEADING_IN_ROMAN_CONTEXT']
+            observation['context_anchor'] = roman_context
+        elif selected and selected['family']=='numeric' and observation['support']:
+            roman_context = None
     return observations

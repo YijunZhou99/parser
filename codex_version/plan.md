@@ -86,6 +86,20 @@ No PDF-specific dictionaries, profiles, headings or title words were introduced.
 Safe internal splitting of a truly connected component is deferred until explicit
 dependency-boundary information exists; preserving it is preferable to hiding an edge.
 
+### Next checkpoint: generalized body scope and provenance
+
+- [x] Record scope paths and heading-driven opening/closure events from accepted hierarchy relationships.
+- [x] Keep cross-page source fragments exact; record minimal page-joining whitespace separately.
+- [x] Preserve multi-page heading ranges without assigning continuation fragments as own body.
+- [x] Treat unselected-page gaps as uncertain continuations until a supported heading establishes scope.
+- [x] Preserve Markdown tables/code as body syntax; keep own text separate from descendants.
+- [x] Add per-node own/heading source ranges, character accounting and an inspectable/exportable Body view.
+- [x] Validate generated separators, exact fragments, own text and provisional ownership; test title substitutions, nested/sibling scopes, gaps and tables.
+
+This does not guess unheaded ancestor resumption. Without source-supported closure
+evidence, the active section continues and that assumption is explicit in each
+span. No title keywords, policy names or per-PDF exceptions were introduced.
+
 ## 0. Instructions to the coding agent
 
 Build a new Python parser from scratch in the existing repository. The repository already contains a TypeScript Document Outline Annotator. Inspect its location, package scripts, schema, and any applicable AGENTS.md before changing files. Preserve it; do not assume its framework or relocate it unnecessarily.
@@ -398,3 +412,28 @@ User-facing settings: provider availability/mode, connection details, input/outp
 ## 9. Final agent handoff
 
 Start by inspecting the existing TypeScript annotator, then execute Track A. Keep the project usable after each step. Use real p4l extraction and transparent minimal implementations for all stages. Make automatic router decisions without credentials; unavailable providers must preserve uncertainty. Build the golden workflow before tuning any algorithms. Include concrete TODOs in every new parser script, and return the A5 review packet before advanced Track B work.
+## Automatic/manual whole-run debugging checkpoint
+
+Implemented preserved automatic baselines, explicit Markdown override rebuilds,
+whole-run comparison downloads, and Reviewer switching between both outputs.
+Comparison runs after inference and includes changed pages, hierarchy/own-text
+differences, unresolved decisions and validation. Matching across canonical revisions
+is provisional and excludes repeated/renamed identities. No verified parser accuracy
+or human annotation review is claimed. Live calls remain unavailable; candidate
+role/parent editing is not part of this checkpoint.
+## Repeated margins and heading footnotes repair
+
+General source-edge repetition across three pages now supplies non-section
+evidence without deleting text or suppressing explicit/bold/numbered headings.
+Trailing superscript footnotes are excluded from label parsing while source spans
+remain intact. The nonprofit six-page regression now assigns A, B and C to II
+with separate own text. Interior repetition and two-page repetition do not trigger
+the margin rule. This remains a provisional structural assumption, not noise review.
+## Single alphabetic children and plain numeric sequences
+
+First alphabetic headings can be supported by established Roman context and
+following prose, without inventing a sibling. Resolver acceptance requires the
+context parent to remain active, and intervening uncertain boundaries still block.
+Plain numeric headings support bare/dot/closing-parenthesis/parenthesized labels,
+with a restart at 1 under active alphabetic sections. Existing dotted-path and
+Markdown-conflict safeguards remain. No document-specific wording or API calls.

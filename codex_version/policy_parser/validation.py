@@ -47,6 +47,7 @@ def validate_run(tree, pages, body, decisions, hierarchy_errors, pending, revisi
     by_page={p['page']:p for p in pages}
     by_node={n['id']:n for n in nodes(tree)}
     assigned={ident:[] for ident in by_node}
+    previous_assignment={}
     for item in body:
         owner=item['owner']
         if owner not in by_node: errors.append({'reason':'UNKNOWN_BODY_OWNER','id':owner})
@@ -58,12 +59,21 @@ def validate_run(tree, pages, body, decisions, hierarchy_errors, pending, revisi
                 errors.append({'reason':'STALE_SOURCE_REVISION','span':span})
             if item['text']!=page['markdown'][span['start']:span['end']]:
                 errors.append({'reason':'SOURCE_TEXT_MISMATCH','span':span})
-        if item['status']=='ASSIGNED' and owner in assigned: assigned[owner].append(item['text'])
+        separator=item.get('separator_before','')
+        if separator:
+            previous=previous_assignment.get(owner)
+            if (separator!='\n' or item['status']!='ASSIGNED' or not previous or
+                previous['ranges'][-1]['page']==item['ranges'][0]['page'] or
+                item.get('separator_reason')!='PAGE_BOUNDARY_SEPARATOR' or
+                not previous['text'] or not item['text'] or previous['text'][-1].isspace() or item['text'][0].isspace()):
+                errors.append({'reason':'INVALID_GENERATED_SEPARATOR','id':owner})
+        if item['status']=='ASSIGNED' and owner in assigned:
+            assigned[owner].append(separator+item['text']); previous_assignment[owner]=item
     for ident,parts in assigned.items():
         if ''.join(parts)!=by_node[ident]['text']: errors.append({'reason':'OWN_TEXT_MISMATCH','id':ident})
     accounting = []
     for p in pages:
-        spans = [b['ranges'][0] for b in body if b['ranges'][0]['page']==p['page']]
+        spans = [span for b in body for span in b['ranges'] if span['page']==p['page']]
         spans.sort(key=lambda s:s['start']); cursor = 0
         for s in spans:
             if s['start'] != cursor: errors.append({'page': p['page'], 'reason': 'GAP_OR_DUPLICATE_ASSIGNMENT'})
@@ -75,6 +85,7 @@ def validate_run(tree, pages, body, decisions, hierarchy_errors, pending, revisi
     return {'schema_errors': schema_errors, 'source_errors': errors,
                         'accounting': accounting, 'pending': [d for d in decisions if d['status']=='AMBIGUOUS'],
                         'outstanding_ownership': [b['ranges'] for b in body if b['ownership']=='provisional'],
-                        'complete': not schema_errors and not errors and not extraction_failures and not any(d['status']=='AMBIGUOUS' for d in decisions) and not pending,
+                        'complete': not schema_errors and not errors and not extraction_failures and not any(b['ownership']=='provisional' for b in body) and not any(d['status']=='AMBIGUOUS' for d in decisions) and not pending,
                         'extraction_failures':extraction_failures,
-                        'body_verified': False, 'scope_closure': 'Next accepted heading changes active owner; enclosing resumption unsupported'}
+                        'generated_page_separators':sum(len(b.get('separator_before','')) for b in body),
+                        'body_verified': False, 'scope_closure': 'Supported heading paths close scopes; unheaded ancestor resumption is not inferred'}

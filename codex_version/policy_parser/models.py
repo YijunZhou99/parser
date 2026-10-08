@@ -92,6 +92,7 @@ class RunResult(TypedDict):
     section_index: list[Decision]
     tree: DocumentData
     body: list[dict[str, Any]]
+    body_index: dict[str, dict[str, Any]]
     validation: dict[str, Any]
     timings: dict[str, float]
     limitations: list[str]

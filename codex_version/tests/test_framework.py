@@ -224,3 +224,16 @@ def test_reviewer_region_budget_skips_provider_and_retains_uncertainty():
     assert run['validation']['pending']
     assert all(r['budget_status']=='oversized' and r['coverage']['all_candidates_included'] for r in run['regions'])
     assert all(p['status']=='skipped' for p in run['structure_provider'])
+
+
+def test_reviewer_body_provenance_inspector():
+    from pathlib import Path
+    from streamlit.testing.v1 import AppTest
+    app=AppTest.from_file(str(Path(__file__).parents[1]/'app.py')).run(timeout=30)
+    run=app.session_state['run']
+    owner=run['tree']['root']['children'][0]['children'][0]['id']
+    inspector=next(widget for widget in app.selectbox if widget.label=='Inspect own text and source provenance')
+    inspector.select(owner).run(timeout=30)
+    assert not app.exception
+    assert any(code.value.strip()==run['body_index'][owner]['own_text'].strip() for code in app.code)
+    assert run['body_index'][owner]['generated_page_separators']==1

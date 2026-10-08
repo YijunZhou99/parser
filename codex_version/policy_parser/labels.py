@@ -14,7 +14,8 @@ def label_grammar(label):
 
 
 def numeric_depth(label):
-    return len(label.rstrip('.)').split('.')) if re.match(r'^\d', label) else None
+    token = label.strip('().')
+    return len(token.split('.')) if re.fullmatch(r'\d+(?:\.\d+)*', token) else None
 
 
 def roman_value(token):

@@ -23,6 +23,42 @@ def test_cross_page_roman_alpha_tree():
     assert not run['validation']['source_errors']
 
 
+def test_single_alpha_child_under_confirmed_roman_context():
+    prose = 'This paragraph supplies ordinary explanatory text following the subsection heading for this document.'
+    run = run_pages(pages(f'# I. Overview\n\n# A. Single child\n\n{prose}\n\n# II. Rules'))
+    first = run['tree']['root']['children'][0]
+    assert first['children'][0]['label']=='A.'
+    assert first['children'][0]['text'].strip()==prose
+
+
+def test_single_alpha_requires_context_and_prose():
+    for text in ('# A. Isolated\n\nSome text.', '# I. Overview\n\n# A. Single\n\n# II. Rules'):
+        run = run_pages(pages(text))
+        candidate = next(c for c in run['candidates'] if c['label']=='A.')
+        decision = next(d for d in run['decisions'] if d['candidate_id']==candidate['id'])
+        assert decision['role_uncertain']
+
+
+def test_numeric_one_to_nine_top_level_and_nested():
+    for delimiter in ('bare', '.', ')', 'parenthesized'):
+        def label(n):
+            return f'({n})' if delimiter=='parenthesized' else str(n)+(delimiter if delimiter!='bare' else '')
+        numbers = '\n\n'.join(f'# {label(n)} Item {n}\n\nBody for item {n}.' for n in range(1,10))
+        root = run_pages(pages(numbers))['tree']['root']
+        assert [c['label'] for c in root['children']]==[label(n) for n in range(1,10)]
+        run = run_pages(pages('# I. Part\n\n# A. Topic\n\n'+numbers+'\n\n# B. Next topic\n\n# II. Next part'))
+        parent = run['tree']['root']['children'][0]
+        assert [c['label'] for c in parent['children']]==['A.', 'B.']
+        assert [c['label'] for c in parent['children'][0]['children']]==[label(n) for n in range(1,10)]
+        assert not run['validation']['source_errors']
+
+
+def test_page_numbers_are_not_numeric_sections():
+    run = run_pages(pages('1\n\nText.', '2\n\nText.', '9\n\nText.'))
+    assert not run['section_index']
+    assert all(d['role']=='body' for d in run['decisions'] if 'EXPLICIT_BODY_SYNTAX' in d['reasons'])
+
+
 def test_isolated_i_and_dual_interpretation_remain_unresolved():
     assert len(interpretations('(i)'))==2
     run=run_pages(pages('## (i) Isolated heading\n\nSome body.'))
@@ -77,4 +113,47 @@ def test_accessibility_slice_structure_without_reference_answers():
     assert [n['label'] for n in root['children']]==['I.','II.','III.']
     assert [n['label'] for n in root['children'][-1]['children']]==['A.','B.','C.']
     assert len(run['section_index'])==6
+    assert not run['validation']['source_errors']
+
+
+def test_repeated_margin_does_not_block_cross_page_siblings():
+    margin = 'EXAMPLE ORGANIZATION | DOCUMENT SERIES'
+    run = run_pages(pages(f'{margin}\n\n# I. Overview\n\n# II. Rules\n\n# A. First\n\nFirst body.',
+                          f'{margin}\n\n# B. Second\n\nSecond body.',
+                          f'{margin}\n\n# **C. Third**<sup>**<u>iv</u>**</sup>\n\nThird body.'))
+    parent = run['tree']['root']['children'][-1]
+    assert [c['label'] for c in parent['children']] == ['A.', 'B.', 'C.']
+    assert 'Second body.' not in parent['children'][0]['text']
+    assert 'Second body.' in parent['children'][1]['text']
+    assert parent['children'][2]['title'] == 'Third'
+    assert any('<sup>' in c['original_text'] for c in run['candidates'])
+    assert not run['validation']['source_errors']
+
+
+def test_repetition_inside_pages_is_not_margin_evidence():
+    run = run_pages(pages(*['Opening paragraph.\n\nPossible enclosing heading\n\n## 1.1 Detail']*3))
+    middle = [c for c in run['candidates'] if c['title']=='Possible enclosing heading']
+    assert middle and all('repeated_page_margin' not in c['signals'] for c in middle)
+    assert any(d['parent_uncertain'] for d in run['decisions'] if d['role']=='section')
+
+
+def test_explicit_repeated_headings_not_suppressed_and_two_pages_insufficient():
+    source = pages(*['# A. Scope\n\nBody.']*3)
+    assert all('repeated_page_margin' not in c['signals'] for c in candidate_blocks(source, 'r'))
+    source = pages(*['Possible heading\n\n# 1 Scope\n\nBody.']*2)
+    assert all('repeated_page_margin' not in c['signals'] for c in candidate_blocks(source, 'r'))
+
+
+def test_nonprofit_slice_has_separate_b_and_c_own_text():
+    packet = Path(__file__).parents[1]/'benchmarks/Employee-Handbook-for-Nonprofits-and-Small-Businesses/source-text.json'
+    run = run_pages(json.loads(packet.read_text(encoding='utf-8')))
+    first = next(n for n in run['tree']['root']['children'] if n['label']=='I.')
+    assert first['children'][0]['title']=='The Organization'
+    parent = next(n for n in run['tree']['root']['children'] if n['label']=='II.')
+    a,b,c = parent['children']
+    assert [n['label'] for n in (a,b,c)] == ['A.', 'B.', 'C.']
+    assert 'is an equal opportunity employer' in b['text']
+    assert 'is an equal opportunity employer' not in a['text']
+    assert 'committed to maintaining an environment' in c['text']
+    assert 'committed to maintaining an environment' not in b['text']
     assert not run['validation']['source_errors']

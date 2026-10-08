@@ -40,14 +40,24 @@ def decide(candidates, evidence=None):
         level = observation['numeric_level'] or c['markdown_level']
         strong = bool(observation['support']) and not observation['conflicts']
         reasons = list(observation['conflicts'])
-        if observation['support']==['EXPLICIT_BODY_SYNTAX']:
+        if observation['support'] in (['EXPLICIT_BODY_SYNTAX'], ['REPEATED_PAGE_MARGIN']):
             decisions.append({'candidate_id':c['id'],'role':'body','parent_id':None,
                               'status':'RESOLVED','role_uncertain':False,'parent_uncertain':False,
-                              'reasons':['EXPLICIT_BODY_SYNTAX'],'origin':'deterministic'})
+                              'reasons':list(observation['support']),'origin':'deterministic'})
             continue
         if not strong: reasons.append('ROLE_UNCERTAIN')
         parent = None
         parent_supported=True
+        if strong and option and option['family']=='numeric' and len(option['path'])==1:
+            series_anchor=next((x for x in reversed(stack) if x['series']==option['series']),None)
+            if series_anchor:
+                level=series_anchor['level']
+            elif (option['value']==1 and stack and stack[-1].get('family')=='alpha'
+                  and c['markdown_level']):
+                level=stack[-1]['level']+1
+                reasons.append('NUMERIC_RESTART_UNDER_ALPHA_SECTION')
+            else:
+                level=c['markdown_level'] or 1
         if strong and option and option['family']!='numeric':
             series = option['series']
             series_anchor=next((x for x in reversed(stack) if x['series']==series),None)
@@ -66,6 +76,8 @@ def decide(candidates, evidence=None):
         if strong:
             while stack and stack[-1]['level'] >= level: stack.pop()
             parent = stack[-1]['id'] if stack else 'root'
+            if observation.get('context_anchor') and parent != observation['context_anchor']:
+                reasons.append('CONTEXT_PARENT_NOT_ACTIVE'); parent=None
             if option and option['family']=='numeric' and len(option['path'])>1:
                 parent=numeric_nodes.get(tuple(option['path'][:-1]))
                 if parent is None: reasons.append('NUMBERED_PARENT_MISSING')
@@ -83,7 +95,8 @@ def decide(candidates, evidence=None):
                           'reasons': reasons, 'origin': 'deterministic'})
         if resolved:
             stack.append({'id':c['id'],'level':level,'order':len(decisions)-1,
-                          'series':option['series'] if option else None})
+                          'series':option['series'] if option else None,
+                          'family':option['family'] if option else None})
             if option:
                 if option['family']=='numeric': numeric_nodes[tuple(option['path'])]=c['id']
             decisions[-1]['reasons'].extend(observation['support'])

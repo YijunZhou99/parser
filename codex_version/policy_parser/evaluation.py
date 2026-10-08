@@ -7,6 +7,53 @@ import difflib
 from .models import nodes
 from .validation import validate_tree
 
+def compare_runs(automatic, manual):
+    """Post-inference debugging differences; neither run is a reference answer."""
+    report = {'comparison': 'automatic vs manual debug run',
+              'verified_parser_accuracy': False, 'changes': [], 'unmatched': []}
+    if (automatic['document_hash'] != manual['document_hash'] or
+            [p['page'] for p in automatic['pages']] != [p['page'] for p in manual['pages']]):
+        return dict(report, error='Runs must use the same PDF hash and selected pages')
+    report['revisions'] = {name: run['canonical_revision'] for name, run in
+                           [('automatic', automatic), ('manual', manual)]}
+    def index(run):
+        candidates = {c['id']: c for c in run['candidates']}
+        result = {}
+        parents = {}
+        def walk(node, parent=None):
+            parents[node['id']] = parent
+            for child in node['children']: walk(child, node)
+        walk(run['tree']['root'])
+        for node in nodes(run['tree']):
+            candidate = candidates.get(node['id'])
+            key = ('root',) if candidate is None and node is run['tree']['root'] else (
+                candidate['page'] if candidate else None, node['label'], node['title'])
+            parent = parents[node['id']]
+            result.setdefault(key, []).append({'id': node['id'], 'label': node['label'],
+                'title': node['title'], 'depth': node['depth'],
+                'parent': None if parent is None else (parent['label'], parent['title']),
+                'own_text': node['text']})
+        return result
+    left, right = index(automatic), index(manual)
+    for key in sorted(set(left) | set(right), key=str):
+        a, b = left.get(key, []), right.get(key, [])
+        if len(a) != 1 or len(b) != 1:
+            report['unmatched'].append({'identity': key, 'automatic': a, 'manual': b,
+                'reason': 'missing or repeated identity; alignment not inferred'})
+            continue
+        changed = [field for field in ('label', 'title', 'depth', 'parent', 'own_text') if a[0][field] != b[0][field]]
+        if changed:
+            report['changes'].append({'identity': key, 'fields': changed,
+                                     'automatic': a[0], 'manual': b[0]})
+    report['alignment_method'] = 'unique original page + exact label/title; suggestions across revisions'
+    report['summaries'] = {name: {'accepted_sections': len(run['section_index']),
+        'unresolved': run['validation']['pending'], 'validation': run['validation'],
+        'debug_overrides': run['debug_overrides']} for name, run in
+        [('automatic', automatic), ('manual', manual)]}
+    report['page_changes'] = [{'page': a['page'], 'automatic': a['markdown'], 'manual': b['markdown']}
+        for a, b in zip(automatic['pages'], manual['pages']) if a['markdown'] != b['markdown']]
+    return report
+
 def compare(run, reference, metadata=None, alignment=None):
     errors = validate_tree(reference)
     if errors: return {'schema_errors': errors, 'scores': None}

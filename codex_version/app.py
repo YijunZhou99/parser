@@ -9,7 +9,7 @@ import streamlit as st
 from policy_parser.pipeline import run_pdf, run_pages
 from policy_parser.demo import demo_run
 from policy_parser.extraction import render, sha
-from policy_parser.evaluation import compare
+from policy_parser.evaluation import compare, compare_runs
 from policy_parser.validation import validate_tree
 
 BASE = Path(__file__).parent
@@ -64,9 +64,15 @@ if st.sidebar.button('Run / Re-run', type='primary') or 'run' not in st.session_
         st.session_state.signature = signature
         st.session_state.debug_base_pages=st.session_state.run['pages']
         st.session_state.debug_overrides={}
+        st.session_state.automatic_run=st.session_state.run
+        st.session_state.pop('manual_run', None)
     except Exception as exc: st.error(f'Run failed: {exc}')
 if 'run' not in st.session_state: st.stop()
 run = st.session_state.run
+st.caption('Displayed run: ' + ('manual debug overrides' if run['debug_overrides'] else 'automatic baseline'))
+if 'body_index' not in run:
+    st.warning('This cached run predates body provenance. Click Run / Re-run to rebuild it.')
+    st.stop()
 if signature != st.session_state.signature:
     st.warning('Inputs changed. Click Run / Re-run. Displayed results belong to the previous run.')
 if not pdf: st.info('Synthetic Markdown demo. This is not a real-document accuracy benchmark.')
@@ -94,11 +100,12 @@ with tabs[2]:
         st.warning('Visual provider unavailable. Original extraction retained.')
     proposal = st.text_area('Debug repair proposal Markdown', key='debug_proposal')
     accept_debug = st.checkbox('Accept this proposal as a manual debug override, including any text changes')
-    if st.button('Accept proposal and rebuild (debug)', disabled=not accept_debug):
+    if st.button('Accept proposal and rebuild (debug)', disabled=not accept_debug or signature != st.session_state.signature):
         overrides=dict(st.session_state.get('debug_overrides',{}))
         overrides[debug_page]=proposal
         st.session_state.debug_overrides=overrides
         st.session_state.run = run_pages(st.session_state.get('debug_base_pages',run['pages']), run['document_hash'], debug_overrides=overrides,region_input_characters=int(region_budget))
+        st.session_state.manual_run = st.session_state.run
         st.rerun()
 with tabs[3]: st.json(run['candidates'])
 with tabs[4]: st.json(run['evidence'])
@@ -126,9 +133,33 @@ with tabs[7]:
         st.code(next(p['markdown'] for p in run['pages'] if p['page']==byid[choice]['page']),language='markdown')
     st.json(run['tree'])
     st.download_button('Download prediction JSON', json.dumps(run['tree'],ensure_ascii=False,indent=2), 'prediction.json')
-with tabs[8]: st.json(run['body'])
+with tabs[8]:
+    st.caption('Own text excludes descendants. Source spans remain exact; generated page separators are recorded separately. Unheaded ancestor resumption is not guessed.')
+    owners=list(run['body_index'])
+    body_owner=st.selectbox('Inspect own text and source provenance',owners,
+                            format_func=lambda ident: f"{run['body_index'][ident]['label']} {run['body_index'][ident]['title']}".strip() or 'Root preamble')
+    st.json(run['body_index'][body_owner])
+    st.code(run['body_index'][body_owner]['own_text'],language='markdown')
+    st.json([b for b in run['body'] if b['owner']==body_owner])
+    st.download_button('Download body provenance',json.dumps(run['body_index'],ensure_ascii=False,indent=2),'body-provenance.json')
 with tabs[9]: st.json({'validation':run['validation'], 'limitations':run['limitations'], 'timings':run['timings']})
 with tabs[10]:
+    st.subheader('Automatic vs manual debug run')
+    st.caption('Manual means explicit debug overrides, not human-reviewed golden annotations. Matching across revisions is provisional; differences are not accuracy scores.')
+    if 'manual_run' in st.session_state and 'automatic_run' in st.session_state:
+        differences = compare_runs(st.session_state.automatic_run, st.session_state.manual_run)
+        st.json(differences)
+        st.download_button('Download run comparison', json.dumps(differences,ensure_ascii=False,indent=2), 'run-comparison.json')
+        st.download_button('Download automatic baseline', json.dumps(st.session_state.automatic_run,ensure_ascii=False,indent=2), 'automatic-run.json')
+        st.download_button('Download manual debug run', json.dumps(st.session_state.manual_run,ensure_ascii=False,indent=2), 'manual-run.json')
+        if st.button('Display automatic baseline'):
+            st.session_state.run=st.session_state.automatic_run
+            st.rerun()
+        if st.button('Display manual debug run'):
+            st.session_state.run=st.session_state.manual_run
+            st.rerun()
+    else:
+        st.info('Accept a debug Markdown proposal in Extraction/Router to compare a rebuilt run with the preserved automatic baseline.')
     if reference and signature==st.session_state.signature and metadata.get('source_sha256')==run['document_hash'] and metadata.get('selected_pages')==[p['page'] for p in run['pages']]:
         evaluation = compare(run, reference, metadata, alignment)
         st.subheader(evaluation.get('comparison','Invalid reference'))

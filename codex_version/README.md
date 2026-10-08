@@ -33,6 +33,14 @@ chains. The sidebar region budget measures compact JSON characters (not model
 tokens), including the request envelope. Oversized connected components are kept
 intact and skipped before provider invocation; no candidates are silently truncated.
 
+Body now records heading-driven scope paths/closures and a separate per-node
+provenance index. The Body tab inspects own text, original ranges and uncertainty,
+and downloads body-provenance.json. Cross-page fragments remain exact; a joining
+newline is inserted only when needed to avoid gluing words, and is recorded as
+generated whitespace outside source accounting. Missing selected pages make
+unheaded continuation ownership provisional. Unheaded ancestor resumption is
+never inferred from prose or document-specific words.
+
 Run from `F:\Projects\parser` in PowerShell:
 
 ```powershell
@@ -90,3 +98,27 @@ the original PDF, then explicitly check the manual-review declaration and downlo
 golden.json. Preserve original silver and record reviewed provenance separately.
 
 See `REVIEW_PACKET.md` for verified commands, stage limitations and test evidence.
+### Whole-run debugging comparison
+
+Run / Re-run preserves an automatic baseline and resets previous manual debug runs.
+Accept an explicit Markdown proposal in Extraction/Router to rebuild all downstream
+stages. Evaluation then shows the automatic/manual comparison, with downloads for
+the comparison and complete automatic baseline, and buttons to inspect either run.
+Comparisons include page changes, section hierarchy and own-text differences,
+unresolved items and validation. Across revisions, unique page/label/title matches
+are provisional suggestions; repeated or renamed headings remain unmatched.
+Manual overrides are not reviewed golden annotations and these differences are
+not accuracy scores. Rebuilds use unavailable providers; baseline replay responses
+are never reused against a changed canonical revision.
+Repeated unformatted first/last source blocks on at least three selected pages
+are recorded as page-margin evidence and do not block section parenting. Explicit,
+bold or numbered headings are excluded from this rule; source text is retained.
+Trailing HTML superscript footnotes are separated for heading-label parsing while
+original heading spans preserve their complete markup. Re-run the nonprofit
+handbook's first six pages to see A, B and C as siblings under II.
+Single `A.` subsections can use a confirmed Roman-section context plus an explicit
+heading followed by prose; an active matching parent is still required. Numeric
+headings `1` through `9` (and larger values), `1.`, `1)` and `(1)` retain their
+labels. Supported plain numeric sequences can nest under an active alphabetic
+section when they restart at 1, even when extraction flattens Markdown levels.
+Bare page numbers remain body; dotted numeric paths retain parent/conflict checks.
