@@ -122,3 +122,9 @@ headings `1` through `9` (and larger values), `1.`, `1)` and `(1)` retain their
 labels. Supported plain numeric sequences can nest under an active alphabetic
 section when they restart at 1, even when extraction flattens Markdown levels.
 Bare page numbers remain body; dotted numeric paths retain parent/conflict checks.
+Numeric paths resolve from active prefix parents: `I → A → 1 → 1.1 → 1.1.1`.
+Both flattened and full-depth Markdown are supported when an active numbering
+relationship explains the levels. A new alphabetic scope permits a restart at 1;
+duplicate/backward numbering within the same parent remains unresolved. Closed
+numeric parents cannot be reused. Ordinary unformatted numbered lists do not
+corroborate section headings, and their original text remains in body output.

@@ -102,7 +102,7 @@ say **against AI draft reference**, never verified parser accuracy.
 
 ## Verification
 
-The current suite passes **75 tests**, including stage boundaries, deterministic
+The current suite passes **80 tests**, including stage boundaries, deterministic
 candidates, Roman/alpha sequences across pages, isolated ambiguous labels,
 truncated supported roles with unknown parents, conflicting numbering, unknown
 ancestors, closed scopes, wrapped/tight headings, code fences, replay ID/cycle/
@@ -182,3 +182,11 @@ differences without correctness scores. Cross-revision alignment uses unique exa
 page/label/title suggestions; repeated and renamed headings require later alignment.
 No reference answers feed inference, and no API calls or human review are implied.
 Candidate role/parent editing and live providers remain future work.
+### Numeric hierarchy checkpoint
+
+Numeric parents are selected only from the active hierarchy using exact prefixes.
+Tests cover `I → A → 1 → 1.1 → 1.1.1` with flattened and full-depth Markdown,
+cross-page restarts under a new alphabetic scope, duplicate/backward numbering,
+closed-parent rejection and preservation of ordinary numbered lists as body.
+Unformatted list labels cannot corroborate section headings. These are general
+structural assumptions, with no live providers or reviewed accuracy claims.

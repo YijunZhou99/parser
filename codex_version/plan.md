@@ -437,3 +437,12 @@ context parent to remain active, and intervening uncertain boundaries still bloc
 Plain numeric headings support bare/dot/closing-parenthesis/parenthesized labels,
 with a restart at 1 under active alphabetic sections. Existing dotted-path and
 Markdown-conflict safeguards remain. No document-specific wording or API calls.
+## Numeric hierarchy checkpoint
+
+Active-stack prefix lookup replaces global numeric parent lookup. Nested paths
+resolve relative to their accepted parent, including flattened and full-depth
+Markdown in mixed Roman/alphabetic/numeric hierarchies. New parent scopes permit
+restart at 1; duplicate/backward numbering in one scope and missing restart anchors
+remain unresolved. Failed decisions preserve the active stack. Unformatted numeric
+list blocks cannot supply section-role corroboration. Synthetic tests cover deep
+nesting, source ownership, cross-page restart, closed prefixes and ordinary lists.

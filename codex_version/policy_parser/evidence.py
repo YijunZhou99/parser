@@ -1,4 +1,4 @@
-"""Current: label sequences, Markdown agreement and repeated-heading/prose evidence.
+"""Current: label/style evidence, conservative numeric-list and Roman/alpha context.
 Limitations: these mechanisms remain assumptions awaiting reviewed benchmarks.
 TODO(B5): measure false confident decisions and improve bounded relationship evidence.
 Acceptance: cross-page Roman/alpha, conflicts and unnumbered heading fixtures.
@@ -13,7 +13,11 @@ def build_evidence(candidates: list[Candidate]) -> list[Evidence]:
     for c in candidates:
         if 'body_markup' in c['signals']: continue
         if c['markdown_level'] or 'standalone_bold' in c['signals'] or 'isolated_short_block' in c['signals']:
-            for opt in options[c['id']]: series[opt['series']].append((c,opt))
+            for opt in options[c['id']]:
+                if opt['family']=='numeric' and not c['markdown_level'] and not (
+                        'standalone_bold' in c['signals'] and 'following_prose' in c['signals']):
+                    continue
+                series[opt['series']].append((c,opt))
     corroboration = defaultdict(list)
     for members in series.values():
         for (a,oa),(b,ob) in zip(members,members[1:]):
@@ -42,6 +46,10 @@ def build_evidence(candidates: list[Candidate]) -> list[Evidence]:
             support = ['EXPLICIT_BODY_SYNTAX']; chosen = None
         elif 'repeated_page_margin' in c['signals']:
             support = ['REPEATED_PAGE_MARGIN']; chosen = None
+        elif chosen and chosen['family']=='numeric' and not level and not (
+                'standalone_bold' in c['signals'] and 'following_prose' in c['signals']):
+            # Label succession alone does not distinguish prose lists from sections.
+            support = []; chosen = None
         observations.append({'candidate_id': c['id'], 'signals': list(c['signals']),
                              'numeric_level': numeric_level, 'markdown_level': level,
                              'possible_parents': [],

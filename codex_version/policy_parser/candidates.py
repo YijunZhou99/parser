@@ -77,6 +77,9 @@ def candidate_blocks(pages: list[PageExtraction], revision: str) -> list[Candida
             table=bool(re.search(r'(?m)^[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*(?:\|[ \t]*:?-{3,}:?[ \t]*)+\|?[ \t]*$',raw))
             if raw.lstrip().startswith(('>', '- ', '* ', '+ ', '```', '~~~')) or table:
                 signals.append('body_markup')
+            if (not level and not bold and
+                    len(re.findall(r'(?m)^\s*\d+[.)]\s+\S', raw)) >= 2):
+                signals.append('body_markup')
             if not level and not numbered and re.fullmatch(r'\d+', clean): signals.append('bare_number')
             if not level and not numbered and not bold and len(raw) <= 180:
                 edge = 'first' if (start,end) == spans[0] else 'last' if (start,end) == spans[-1] else None
